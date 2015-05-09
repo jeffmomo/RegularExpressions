@@ -1,6 +1,3 @@
-/**
- * Created by Jeff on 9/05/2015.
- */
 public class RegExp
 {
 	private int _position;
@@ -36,7 +33,7 @@ public class RegExp
 			return 0;
 
 		if(altn() > 0)
-			throw new Exception("Syntax Error: expected symbol not found");
+			throw new Exception("Syntax Error: did not find expected symbol after '" + _text.substring(0, _position) + "'");
 
 		if(_position >= _len)
 			return 0;
@@ -54,14 +51,11 @@ public class RegExp
 		if(_position >= _len)
 			return 0;
 
-		int temp = _position;
 		if(clause() > 0)
-		//if (_position == temp)
 			return 1;
 
 		if(_position >= _len)
 			return 0;
-
 
 		altn();
 		return 0;
@@ -78,11 +72,8 @@ public class RegExp
 		if(_position >= _len)
 			return 0;
 
-
 		if (checkNext() == '*' || checkNext() == '?')
-		{
 			_position++;
-		}
 
 		return 0;
 	}
@@ -95,7 +86,6 @@ public class RegExp
 		if(checkNext() == '\\')
 		{
 			_position++;
-			//checkNext();
 			return chrEsc();
 		}
 		else if(checkNext() == '(')
@@ -103,9 +93,7 @@ public class RegExp
 			_position++;
 			expr();
 			if(checkNext() == ')')
-			{
 				_position++;
-			}
 			else
 				throw new Exception("Matching ) not found");
 		}
@@ -118,9 +106,7 @@ public class RegExp
 			_position++;
 			altn();
 			if(checkNext() == ']')
-			{
 				_position++;
-			}
 			else
 				throw new Exception("Matching ] not found");
 		}
@@ -134,13 +120,9 @@ public class RegExp
 
 	private int chr() throws Exception
 	{
-		//if(_position >= _len)
 		checkNext();
-			//return 0;
 		if("|*?\\()[].".contains(""+checkNext()))
-		{
 			return 1;
-		}
 		else
 		{
 			_position++;
@@ -151,19 +133,14 @@ public class RegExp
 
 	private int chrEsc() throws Exception
 	{
-		//if(_position >= _len)
 		checkNext();
-		//return 0;
 		if("|*?\\()[].".contains(""+checkNext()))
 		{
 			_position++;
 			return 0;
 		}
 		else
-		{
-			throw new Exception("Invalid escaped literal");
-			//return 1;
-		}
+			throw new Exception("Invalid escaped literal: " + "\\" + checkNext());
 
 	}
 
@@ -171,6 +148,7 @@ public class RegExp
 	{
 		if(_position >= _len)
 			throw new Exception("Unexpected end of input");
+
 		return _text.charAt(_position);
 	}
 
