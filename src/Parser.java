@@ -19,7 +19,10 @@ public class Parser
 		{
 			expr();
 
-			System.out.println(_text.substring(_position));
+			System.err.println(_text.substring(_position));
+
+			if(_len != _position)
+				System.err.println("String did not completely parse");
 
 		}
 		catch (Exception e)
@@ -58,7 +61,9 @@ public class Parser
 		if(_position >= _len)
 			return 0;
 
-		return altn();
+		altn();
+
+		return 0;
 	}
 
 	private int clause() throws Exception
