@@ -3,12 +3,15 @@
  */
 public class Parser
 {
+
+	// Position of the current char being read, the regex to parse, and the length of regex
 	private int _position;
 	private String _text;
 	private int _len;
 
 	public Parser(String text)
 	{
+		// Sets the text and text length
 		_text = text;
 		_len = text.length();
 	}
@@ -17,10 +20,13 @@ public class Parser
 	{
 		try
 		{
+			// Parse from initial rewrite of expr
 			expr();
 
+			// Prints out leftover string if it didnt completely parse
 			System.err.println(_text.substring(_position));
 
+			// Gives warning if didnt completely parse
 			if(_len != _position)
 				System.err.println("String did not completely parse");
 
@@ -31,17 +37,22 @@ public class Parser
 		}
 	}
 
+	// Checks the rewriting of expr
 	private int expr() throws Exception
 	{
+		// Check position is not out of bounds
 		if(_position >= _len)
 			return 0;
 
+		// Check that altn correctly parsed
 		if(altn() > 0)
 			throw new Exception("Syntax Error: did not find expected symbol after '" + _text.substring(0, _position) + "'");
 
+		// If still input then continue matching
 		if(_position >= _len)
 			return 0;
 
+		// Lookahead 1, and checks for disjunction
 		if(checkNext() == '|')
 		{
 			_position++;
@@ -50,49 +61,59 @@ public class Parser
 		return 0;
 	}
 
+	// Rewrites altn
 	private int altn() throws Exception
 	{
 		if(_position >= _len)
 			return 0;
 
+		// Check if clause parsed correctly (i.e. if it consumed a char, so that it doesnt go into left recursion)
 		if(clause() > 0)
 			return 1;
 
 		if(_position >= _len)
 			return 0;
 
+		// Does another altn if still input left
 		altn();
 
 		return 0;
 	}
 
+	// Rewrites clause
 	private int clause() throws Exception
 	{
 		if(_position >= _len)
 			return 0;
 
+		// Check for correct parse of lit
 		if(lit() > 0)
 			return 1;
 
 		if(_position >= _len)
 			return 0;
 
+		// If the * or ? decorator symbols exist, then just skip over it
 		if (checkNext() == '*' || checkNext() == '?')
 			_position++;
 
 		return 0;
 	}
 
+	// Rewrites literal
 	private int lit() throws Exception
 	{
 		if(_position >= _len)
 			return 0;
 
+		// Does escaping if the escape symbol is detected
 		if(checkNext() == '\\')
 		{
 			_position++;
+			// Uses a chr parser which only returns 0 for escapable symbols
 			return chrEsc();
 		}
+		// Parses brackets
 		else if(checkNext() == '(')
 		{
 			_position++;
@@ -102,10 +123,12 @@ public class Parser
 			else
 				throw new Exception("Matching ) not found");
 		}
+		// Parses the wildcard symbol
 		else if(checkNext() == '.')
 		{
 			_position++;
 		}
+		// Parses brackets for alternations
 		else if(checkNext() == '[')
 		{
 			_position++;
@@ -123,6 +146,7 @@ public class Parser
 		return 0;
 	}
 
+	// Checks if next char is of the vocabulary
 	private int chr() throws Exception
 	{
 		checkNext();
@@ -136,6 +160,7 @@ public class Parser
 
 	}
 
+	// Checks if next char is not of vocabulary
 	private int chrEsc() throws Exception
 	{
 		checkNext();
@@ -149,6 +174,7 @@ public class Parser
 
 	}
 
+	// Returns the next character. Handles bounds checking too
 	private char checkNext() throws Exception
 	{
 		if(_position >= _len)
