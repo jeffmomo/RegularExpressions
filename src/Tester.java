@@ -6,8 +6,10 @@ public class Tester
 
 	public static void main(String[] args)
 	{
-		new RegExp("(o[d]?|c*g)|(\\f.f*)").parse();
-		new RegExp("(a|aa|(a[sdf])|)|d").parse();
-		new RegExp("(a|").parse();
+		new RegExp("(o[d]?|c*g)|(\\f.f*)");
+		new RegExp("(a|aa|(a[sdf])|)|d");
+		new RegExp("(a|");
+		new RegExp("\\.\\.\\\\");
+
 	}
 }
