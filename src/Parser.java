@@ -42,7 +42,7 @@ public class Parser
 		if(checkNext() == '|')
 		{
 			_position++;
-			expr();
+			return expr();
 		}
 		return 0;
 	}
@@ -58,8 +58,7 @@ public class Parser
 		if(_position >= _len)
 			return 0;
 
-		altn();
-		return 0;
+		return altn();
 	}
 
 	private int clause() throws Exception
