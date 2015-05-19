@@ -141,7 +141,6 @@ public class Parser
 		else if(checkNext() == '[')
 		{
 			_position++;
-			//altn();
                         spec();
 			if(checkNext() == ']')
                             _position++;
@@ -156,7 +155,7 @@ public class Parser
 		return 0;
 	}
         
-        // Checks for special characters
+        // Checks for special characters inside a list
 	private int spec() throws Exception    
         {
             if(_position >= _len)
