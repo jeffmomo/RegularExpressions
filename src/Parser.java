@@ -3,6 +3,15 @@
  */
 public class Parser
 {
+    /*
+    Grammar
+    E -> A|E | A
+    A -> CA | C
+    C -> L* | L? | L
+    L -> \D | D | ( E ) | . | [S]
+    S -> DS | D | ] | ]S
+    D -> All Literal Symbols 
+    */
 
 	// Position of the current char being read, the regex to parse, and the length of regex
 	private int _position;
@@ -132,11 +141,12 @@ public class Parser
 		else if(checkNext() == '[')
 		{
 			_position++;
-			altn();
+			//altn();
+                        spec();
 			if(checkNext() == ']')
-				_position++;
+                            _position++;
 			else
-				throw new Exception("Matching ] not found");
+                            throw new Exception("Matching ] not found");
 		}
 		else
 		{
@@ -145,20 +155,41 @@ public class Parser
 
 		return 0;
 	}
+        
+        // Checks for special characters
+	private int spec() throws Exception    
+        {
+            if(_position >= _len)
+                return 0;
+            
+            // move position forward as it does not matter what it is looking at
+            _position++;
+            
+            if(_position >= _len)
+                return 0;
+            
+            // if from here we see a ], it indicates the end of the list
+            if(checkNext() == ']')
+                return 0;
+            
+            // otherwise just keep going until you reach ] as all literals including special symbols are parsed
+            spec();
+            return 1;
+        }
 
 	// Checks if next char is of the vocabulary
 	private int chr() throws Exception
 	{
-		checkNext();
-		if("|*?\\()[].".indexOf(checkNext()) != -1)
-			return 1;
-		else
-		{
-			_position++;
-			return 0;
-		}
-
+            checkNext();
+            if("|*?\\()[].".indexOf(checkNext()) != -1)
+                    return 1;
+            else
+            {
+                    _position++;
+                    return 0;
+            }
 	}
+        
 
 	// Checks if next char is not of vocabulary
 	private int chrEsc() throws Exception
@@ -171,7 +202,6 @@ public class Parser
 		}
 		else
 			throw new Exception("Invalid escaped literal: " + "\\" + checkNext());
-
 	}
 
 	// Returns the next character. Handles bounds checking too
