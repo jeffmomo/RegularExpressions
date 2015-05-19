@@ -164,9 +164,6 @@ public class Parser
             // move position forward as it does not matter what it is looking at
             _position++;
             
-            if(_position >= _len)
-                return 0;
-            
             // if from here we see a ], it indicates the end of the list
             if(checkNext() == ']')
                 return 0;
