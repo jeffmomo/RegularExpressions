@@ -66,9 +66,6 @@ public class Executor
 	// Checks the rewriting of expr
 	private int expr() throws Exception
 	{
-            // Check position is not out of bounds
-            if(_position >= _len)
-                return 0;
 
             // initial state
             int r = altn();
@@ -76,9 +73,6 @@ public class Executor
             if( r > 0)
                 throw new Exception("Syntax Error: did not find expected symbol after '" + _text.substring(0, _position) + "'");
 
-            // If still input then continue matching
-            if(_position >= _len)
-                return r;
 
             // Lookahead 1, and checks for disjunction
             if(checkNext() == '|')
@@ -87,18 +81,30 @@ public class Executor
                     next2[r-1] = state;
                 next1[r-1] = state;*/
                 
-                // record first branch location
+                // record first branch start location
                 int t1 = r;
                 
-                // set initial state and move to new empty state to build branching machine
-                r = state;
+                // first branch end location
+                int d = state;
+                
+                // move to new empty state to build second branch
                 state++;
                 
                 _position++;
-                // second branch location
+                // build second branch and second branch start location
                 int t2 = expr();
                 
+                // set second branch to end same location as first branch
+                setState(state, (char)0, d, d);
+                
+                // move to empty state to build branching location
+                state++;
+                r = state;
                 setState(state, (char)0, t1, t2);
+                
+                // set the meeting point of both branches to go to an empty state to build further states
+                state++;
+                setState(d, (char)0, state, state);
                 return r;
             }
             return r;
