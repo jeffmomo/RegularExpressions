@@ -23,8 +23,8 @@ public class Executor
 	private int mark;
 	private int point;
 
-	private int state = 1;
-
+        private int startState = 1;
+	private int state = 0;
 
 	private char[] chrs;
 	private int[] next1;
@@ -55,29 +55,53 @@ public class Executor
 			e.printStackTrace();
 		}
 	}
+        
+        private void setState( int state, char c, int n1, int n2)
+        {
+            chrs[state] = c;
+            next1[state] = n1;
+            next2[state] = n2;
+        }
 
 	// Checks the rewriting of expr
 	private int expr() throws Exception
 	{
-		// Check position is not out of bounds
-		if(_position >= _len)
-			return 0;
+            // Check position is not out of bounds
+            if(_position >= _len)
+                return 0;
 
-		// Check that altn correctly parsed
-		if(altn() > 0)
-			throw new Exception("Syntax Error: did not find expected symbol after '" + _text.substring(0, _position) + "'");
+            // initial state
+            int r = altn();
+            // Check that altn correctly parsed 
+            if( r > 0)
+                throw new Exception("Syntax Error: did not find expected symbol after '" + _text.substring(0, _position) + "'");
 
-		// If still input then continue matching
-		if(_position >= _len)
-			return 0;
+            // If still input then continue matching
+            if(_position >= _len)
+                return r;
 
-		// Lookahead 1, and checks for disjunction
-		if(checkNext() == '|')
-		{
-			_position++;
-			return expr();
-		}
-		return 0;
+            // Lookahead 1, and checks for disjunction
+            if(checkNext() == '|')
+            {
+                /*if(next1[r-1] == next2[r-1])
+                    next2[r-1] = state;
+                next1[r-1] = state;*/
+                
+                // record first branch location
+                int t1 = r;
+                
+                // set initial state and move to new empty state to build branching machine
+                r = state;
+                state++;
+                
+                _position++;
+                // second branch location
+                int t2 = expr();
+                
+                setState(state, (char)0, t1, t2);
+                return r;
+            }
+            return r;
 	}
 
 	// Rewrites altn
@@ -87,16 +111,17 @@ public class Executor
 			return 0;
 
 		// Check if clause parsed correctly (i.e. if it consumed a char, so that it doesnt go into left recursion)
-		if(clause() > 0)
-			return 1;
+		int r = clause();
+                if(r > 0)
+                    return r;
 
 		if(_position >= _len)
-			return 0;
+			return r;
 
 		// Does another altn if still input left
 		altn();
 
-		return 0;
+		return r;
 	}
 
 	// Rewrites clause
@@ -106,17 +131,30 @@ public class Executor
 			return 0;
 
 		// Check for correct parse of lit
-		if(lit() > 0)
-			return 1;
+                int r = lit();
+		if( r > 0)
+                    return r;
 
 		if(_position >= _len)
-			return 0;
+                    return r;
 
 		// If the * or ? decorator symbols exist, then just skip over it
-		if (checkNext() == '*' || checkNext() == '?')
-			_position++;
-
-		return 0;
+		if (checkNext() == '*')
+                {                    
+                    _position++;
+                    setState(state, (char)0, state+1, r);
+                    r = state;
+                    state++;
+                    
+                } else if (checkNext() == '?')
+                {
+                    // TODO not sure if works
+                    _position++;
+                    int t2 = state;
+                    state++;
+                    setState(state, (char)0, r, t2);
+                }
+		return r;
 	}
 
 	// Rewrites literal
