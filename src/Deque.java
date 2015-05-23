@@ -2,44 +2,50 @@ public class Deque
 {
     private Node head;
     private Node tail;
+	private Node start;
     
     public Deque()
     {
-        
+        start = new Node(-1);
+	    head = tail = start;
     }
     
     // takes from top of deque
-    public char pop()
+    public int pop()
     {
-        char c = head.getChar();
+	    int c = head.getChar();
         head = head.getNext();
         return c;
     }
 
+	public boolean isPoppable()
+	{
+		return head.getChar() != -1;
+	}
+	public boolean isEmpty()
+	{
+		return head == null;
+	}
+
     
     // adds to top of deque
-    public void push(char c)
+    public void push(int c)
     {
         Node n = new Node(c);
         n.setNext(head);
         head = n;
         
         // initialise for empty deque
-        if( tail == null)
-            tail = n;
+
     }
     
     // adds to end of deque
-    public void put(char c)
+    public void put(int c)
     {
         Node n = new Node(c);
         // initialise for empty deque
-        if(tail == null)
-        {
-            head = n;
-        } else {
-            tail.setNext(n);
-        }
+
+	    tail.setNext(n);
         tail = n;
     }
 }

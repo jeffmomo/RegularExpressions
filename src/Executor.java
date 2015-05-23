@@ -12,25 +12,33 @@ public class Executor
     S -> DS | D | ] | ]S
     D -> All Literal Symbols 
     */
+
+
+	//##########TODO: Add the wildcard symbol################
+
+
 	private int _position;
 
+
+	private String _text;
+	private int _txtLen;
 
 	private String _regex;
 	private int _len;
 
-	private String _text;
-
 	private int mark;
 	private int point;
+	private int _currState = 0;
+	private boolean failure = false;
 
-        private int startState = 1;
+	private int startState = 1;
 	private int state = 0;
 
 	private char[] chrs;
 	private int[] next1;
 	private int[] next2;
 
-
+	private DequeEx _deq = new DequeEx();
 
 
 	public Executor(String regex)
@@ -39,15 +47,13 @@ public class Executor
 		_len = regex.length();
 	}
 
-	public void execute(String text)
+	private void compile()
 	{
-		_text = text;
-
 		try
 		{
 			expr();
 
-			System.out.println(_text.substring(_position));
+			System.out.println(_regex.substring(_position));
 
 		}
 		catch (Exception e)
@@ -55,13 +61,135 @@ public class Executor
 			e.printStackTrace();
 		}
 	}
+
+	public void execute(String text)
+	{
+		_text = text;
+		_txtLen = text.length() - 1;
+
+		compile();
+
+		chrs[0] = '\0';
+		next1[0] = 0;
+		next2[0] = 0;
+
+
+		_deq.pushFront(1);
+
+		while(!failure)
+		{
+			evalStates();
+
+
+//			if(_deq.isEmpty())
+//			{
+//				//incPoint();
+//				_deq = new DequeEx();
+//				_deq.pushFront(1);
+//
+//				//FAILURE
+//			}
+//
+
+
+
+			evalPossible();
+		}
+	}
+
+	private boolean isBranch()
+	{
+		return chrs[_currState] == '\0';
+		//return next1[_currState] != next2[_currState];
+	}
+	private boolean isBranch(int onState)
+	{
+		return chrs[onState] == '\0';
+		//return next1[_currState] != next2[_currState];
+	}
+
+	private void evalStates()
+	{
+		while(_deq.isPoppable())
+		{
+			int look = _deq.getHead();
+
+			if(look == 0)
+			{
+				//SUCCESS
+				System.err.println("Success");
+			}
+
+
+			if (isBranch(look))
+			{
+				_deq.pushFront(next1[look]);
+				_deq.pushFront(next2[look]);
+			} else if (chrs[look] == _text.charAt(point) || chrs[look] == (char)65535)
+			{
+				_deq.putRear(next1[look]);
+			}
+		}
+
+
+		if(_deq.isEmpty() )
+		{
+			if(failure)
+				return;
+
+			incMark();
+			evalStates();
+		}
+
+
+
+	}
+
+	private void incPoint()
+	{
+		point++;
+		if(point > _txtLen)
+		{
+			incMark();
+		}
+	}
+	private void incMark()
+	{
+		mark++;
+		if(mark > _txtLen)
+		{
+			failure = true;
+			System.err.println("Failure to match");
+			//FAILURE
+		}
+		point = mark;
+	}
+
+
+	private void evalPossible()
+	{
+		while(!_deq.isEmpty())
+		{
+			int look = _deq.getTail();
+			if (isBranch(look))
+			{
+				_deq.pushFront(next1[look]);
+				_deq.pushFront(next2[look]);
+			}
+			else
+			{
+				_deq.pushFront(next1[look]);
+			}
+		}
+		incPoint();
+	}
         
-        private void setState( int state, char c, int n1, int n2)
-        {
-            chrs[state] = c;
-            next1[state] = n1;
-            next2[state] = n2;
-        }
+    private void setState( int state, char c, int n1, int n2)
+    {
+        chrs[state] = c;
+        next1[state] = n1;
+        next2[state] = n2;
+    }
 
 	// Checks the rewriting of expr
 	private int expr() throws Exception
@@ -71,7 +199,7 @@ public class Executor
             int r = altn();
             // Check that altn correctly parsed 
             if( r > 0)
-                throw new Exception("Syntax Error: did not find expected symbol after '" + _text.substring(0, _position) + "'");
+                throw new Exception("Syntax Error: did not find expected symbol after '" + _regex.substring(0, _position) + "'");
 
 
             // Lookahead 1, and checks for disjunction
@@ -260,6 +388,6 @@ public class Executor
 		if(_position >= _len)
 			throw new Exception("Unexpected end of input");
 
-		return _text.charAt(_position);
+		return _regex.charAt(_position);
 	}
 }

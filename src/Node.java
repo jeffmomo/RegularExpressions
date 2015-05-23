@@ -1,14 +1,14 @@
 public class Node
 {
-    private char c;
+    private int c;
     Node next;
     
-    public Node(char c)
+    public Node(int c)
     {
         this.c = c;
     }
     
-    public char getChar()
+    public int getChar()
     {
         return c;
     }
