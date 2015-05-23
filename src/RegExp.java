@@ -5,10 +5,15 @@ public class RegExp
 
 
 
-
 	public RegExp(String text)
 	{
 		new Parser(text).parse();
+	}
+
+	public RegExp(String text, String match)
+	{
+		new Parser(text).parse();
+		new Executor(text).execute(match);
 	}
 
 

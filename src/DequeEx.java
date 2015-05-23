@@ -29,6 +29,11 @@ public class DequeEx
 		return out;
 	}
 
+	public int peekHead()
+	{
+		return _head.state;
+	}
+
 	public int getTail()
 	{
 		int out = _tail.state;

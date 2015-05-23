@@ -12,53 +12,190 @@ public class Executor
     S -> DS | D | ] | ]S
     D -> All Literal Symbols 
     */
+
+
+	//##########TODO: Add the wildcard symbol################
+
+
 	private int _position;
 
 
-	private String _regex;
+
+	private int _compTextLen;
+	private String _compText;
 	private int _len;
 
 	private String _text;
-        
-        
+
+	private int mark;
+	private int point;
+	private int _currState = 0;
+	private boolean failure = false;
+
+
 	private int state = 1;
 
-	private char[] chrs;
-	private int[] next1;
-	private int[] next2;
+	private char[] chrs = new char[65535];
+	private int[] next1 = new int[65535];
+	private int[] next2 = new int[65535];
 
+	private DequeEx _deq = new DequeEx();
 
 
 
 	public Executor(String regex)
 	{
-		_regex = regex;
+		_text = regex;
 		_len = regex.length();
 	}
 
+	private void compile()
+	{
+		try
+		{
+			expr();
+
+			System.out.println(_text.substring(_position));
+
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+
 	public void execute(String text)
 	{
-            _text = text;
+		_compText = text;
+		_compTextLen = text.length() - 1;
 
-            try
-            {
-                    expr();
+		compile();
 
-                    System.out.println(_text.substring(_position));
+		chrs[0] = '\0';
+		next1[0] = 0;
+		next2[0] = 0;
 
-            }
-            catch (Exception e)
-            {
-                    e.printStackTrace();
-            }
+
+		_deq.pushFront(1);
+
+		while(!failure)
+		{
+			evalStates();
+
+			evalPossible();
+		}
 	}
-        
-        private void setState( int state, char c, int n1, int n2)
-        {
-            chrs[state] = c;
-            next1[state] = n1;
-            next2[state] = n2;
-        }
+
+	private boolean isBranch()
+	{
+		return chrs[_currState] == '\0';
+		//return next1[_currState] != next2[_currState];
+	}
+	private boolean isBranch(int onState)
+	{
+		return chrs[onState] == '\0';
+		//return next1[_currState] != next2[_currState];
+	}
+
+	private void evalStates()
+	{
+		if(failure)
+			return;
+
+		while(_deq.isPoppable())
+		{
+			int look = _deq.getHead();
+
+//			if(look == 0)
+//			{
+//				//SUCCESS
+//				failure = true;
+//				System.err.println("Success");
+//				return;
+//			}
+
+
+			if (isBranch(look))
+			{
+				_deq.pushFront(next1[look]);
+				_deq.pushFront(next2[look]);
+			} else if (chrs[look] == _compText.charAt(point) || chrs[look] == (char)65535)
+			{
+				_deq.putRear(next1[look]);
+			}
+		}
+
+
+		if(_deq.isEmpty() )
+		{
+			if(failure)
+				return;
+
+			incMark();
+			_deq.pushFront(1);
+			evalStates();
+		}
+
+
+
+	}
+
+	private void incPoint()
+	{
+		point++;
+		if(point > _compTextLen)
+		{
+			incMark();
+		}
+	}
+	private void incMark()
+	{
+		mark++;
+		if(mark > _compTextLen)
+		{
+			failure = true;
+			System.err.println("Failure to match");
+			return;
+			//FAILURE
+		}
+		point = mark;
+	}
+
+
+	private void evalPossible()
+	{
+		while(!_deq.isEmpty())
+		{
+			int look = _deq.getTail();
+			if (isBranch(look))
+			{
+				_deq.pushFront(next1[look]);
+				_deq.pushFront(next2[look]);
+			}
+			else
+			{
+				_deq.pushFront(next1[look]);
+			}
+		}
+
+		if(_deq.peekHead() == 0)
+		{
+			//SUCCESS
+			failure = true;
+			System.err.println("Success");
+			return;
+		}
+
+		incPoint();
+	}
+
+    private void setState( int state, char c, int n1, int n2)
+    {
+        chrs[state] = c;
+        next1[state] = n1;
+        next2[state] = n2;
+    }
 
 	// Checks the rewriting of expr
 	private int expr() throws Exception
@@ -286,7 +423,8 @@ public class Executor
 	private char checkNext() throws Exception
 	{
             if(_position >= _len)
-                throw new Exception("Unexpected end of input");
+	            return (char)0;
+                //throw new Exception("Unexpected end of input");
 
             return _text.charAt(_position);
 	}
