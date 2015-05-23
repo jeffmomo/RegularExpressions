@@ -12,33 +12,22 @@ public class Executor
     S -> DS | D | ] | ]S
     D -> All Literal Symbols 
     */
-
-
-	//##########TODO: Add the wildcard symbol################
-
-
 	private int _position;
 
-
-	private String _text;
-	private int _txtLen;
 
 	private String _regex;
 	private int _len;
 
-	private int mark;
-	private int point;
-	private int _currState = 0;
-	private boolean failure = false;
-
-	private int startState = 1;
-	private int state = 0;
+	private String _text;
+        
+        
+	private int state = 1;
 
 	private char[] chrs;
 	private int[] next1;
 	private int[] next2;
 
-	private DequeEx _deq = new DequeEx();
+
 
 
 	public Executor(String regex)
@@ -47,193 +36,65 @@ public class Executor
 		_len = regex.length();
 	}
 
-	private void compile()
-	{
-		try
-		{
-			expr();
-
-			System.out.println(_regex.substring(_position));
-
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-	}
-
 	public void execute(String text)
 	{
-		_text = text;
-		_txtLen = text.length() - 1;
+            _text = text;
 
-		compile();
+            try
+            {
+                    expr();
 
-		chrs[0] = '\0';
-		next1[0] = 0;
-		next2[0] = 0;
+                    System.out.println(_text.substring(_position));
 
-
-		_deq.pushFront(1);
-
-		while(!failure)
-		{
-			evalStates();
-
-
-//			if(_deq.isEmpty())
-//			{
-//				//incPoint();
-//				_deq = new DequeEx();
-//				_deq.pushFront(1);
-//
-//				//FAILURE
-//			}
-//
-
-
-
-			evalPossible();
-		}
-	}
-
-	private boolean isBranch()
-	{
-		return chrs[_currState] == '\0';
-		//return next1[_currState] != next2[_currState];
-	}
-	private boolean isBranch(int onState)
-	{
-		return chrs[onState] == '\0';
-		//return next1[_currState] != next2[_currState];
-	}
-
-	private void evalStates()
-	{
-		while(_deq.isPoppable())
-		{
-			int look = _deq.getHead();
-
-			if(look == 0)
-			{
-				//SUCCESS
-				System.err.println("Success");
-			}
-
-
-			if (isBranch(look))
-			{
-				_deq.pushFront(next1[look]);
-				_deq.pushFront(next2[look]);
-			} else if (chrs[look] == _text.charAt(point) || chrs[look] == (char)65535)
-			{
-				_deq.putRear(next1[look]);
-			}
-		}
-
-
-		if(_deq.isEmpty() )
-		{
-			if(failure)
-				return;
-
-			incMark();
-			evalStates();
-		}
-
-
-
-	}
-
-	private void incPoint()
-	{
-		point++;
-		if(point > _txtLen)
-		{
-			incMark();
-		}
-	}
-	private void incMark()
-	{
-		mark++;
-		if(mark > _txtLen)
-		{
-			failure = true;
-			System.err.println("Failure to match");
-			//FAILURE
-		}
-		point = mark;
-	}
-
-
-	private void evalPossible()
-	{
-		while(!_deq.isEmpty())
-		{
-			int look = _deq.getTail();
-			if (isBranch(look))
-			{
-				_deq.pushFront(next1[look]);
-				_deq.pushFront(next2[look]);
-			}
-			else
-			{
-				_deq.pushFront(next1[look]);
-			}
-		}
-		incPoint();
+            }
+            catch (Exception e)
+            {
+                    e.printStackTrace();
+            }
 	}
         
-    private void setState( int state, char c, int n1, int n2)
-    {
-        chrs[state] = c;
-        next1[state] = n1;
-        next2[state] = n2;
-    }
+        private void setState( int state, char c, int n1, int n2)
+        {
+            chrs[state] = c;
+            next1[state] = n1;
+            next2[state] = n2;
+        }
 
 	// Checks the rewriting of expr
 	private int expr() throws Exception
 	{
-
-            // initial state
-            int r = altn();
-            // Check that altn correctly parsed 
-            if( r > 0)
-                throw new Exception("Syntax Error: did not find expected symbol after '" + _regex.substring(0, _position) + "'");
-
+            // record initial state
+            int r = state;
+            
+            // go to new state and build altn machine
+            state++;
+            int t1  = altn();
 
             // Lookahead 1, and checks for disjunction
             if(checkNext() == '|')
             {
-                /*if(next1[r-1] == next2[r-1])
-                    next2[r-1] = state;
-                next1[r-1] = state;*/
+                // if there is disjunction build second branch
                 
-                // record first branch start location
-                int t1 = r;
                 
                 // first branch end location
                 int d = state;
                 
                 // move to new empty state to build second branch
                 state++;
-                
                 _position++;
-                // build second branch and second branch start location
+                // build second branch and record second branch start location
                 int t2 = expr();
                 
-                // set second branch to end same location as first branch
-                setState(state, (char)0, d, d);
-                
-                // move to empty state to build branching location
-                state++;
-                r = state;
-                setState(state, (char)0, t1, t2);
-                
-                // set the meeting point of both branches to go to an empty state to build further states
-                state++;
+ 
+                // set end location of first branch to same as second branch
                 setState(d, (char)0, state, state);
-                return r;
+                
+                // set branching state branching locations
+                setState(r, (char)0, t1, t2);
+            } else
+            {
+                // join initial state to start state of altn machine if there is no branch
+                setState(r, (char)0, t1, t1);
             }
             return r;
 	}
@@ -241,16 +102,16 @@ public class Executor
 	// Rewrites altn
 	private int altn() throws Exception
 	{
-		if(_position >= _len)
-			return 0;
 
 		// Check if clause parsed correctly (i.e. if it consumed a char, so that it doesnt go into left recursion)
 		int r = clause();
-                if(r > 0)
-                    return r;
 
-		if(_position >= _len)
-			return r;
+		// check for end of text and set end state if so
+                if(checkTextEnd())
+                {
+                    setState(state, (char)0, 0, 0);
+                    return r;
+                }
 
 		// Does another altn if still input left
 		altn();
@@ -261,133 +122,177 @@ public class Executor
 	// Rewrites clause
 	private int clause() throws Exception
 	{
-		if(_position >= _len)
-			return 0;
-
-		// Check for correct parse of lit
-                int r = lit();
-		if( r > 0)
-                    return r;
-
-		if(_position >= _len)
-                    return r;
-
-		// If the * or ? decorator symbols exist, then just skip over it
-		if (checkNext() == '*')
-                {                    
-                    _position++;
-                    setState(state, (char)0, state+1, r);
-                    r = state;
-                    state++;
-                    
-                } else if (checkNext() == '?')
-                {
-                    // TODO not sure if works
-                    _position++;
-                    int t2 = state;
-                    state++;
-                    setState(state, (char)0, r, t2);
-                }
-		return r;
+            // record initial state
+            int r = state;
+            // go to new state and build literal machine
+            state++;
+            // record first start location
+            int t1 = lit();
+            
+            // If the * or ? decorator symbols exist, then just skip over it
+            if (checkNext() == '*')
+            {                    
+                _position++;
+                // set state to point to initial state
+                setState(state, (char)0, r, r);
+                
+                // go to next empty state for both branches to point to
+                state++;
+                
+                // initial branch state to point to literal machine or to currerent empty
+                setState(r, (char)0, t1, state);
+                
+                // check for end of text and set end state if so
+                if(checkTextEnd())
+                    setState(state, (char)0, 0, 0);
+            } else if (checkNext() == '?')
+            {
+                _position++;
+                // set state to point to next state
+                setState(state, (char)0, state+1, state+1);
+                
+                // go to next empty state for both branches to point to
+                state++;
+                
+                // initial branch state to point to literal machine or to currerent empty
+                setState(r, (char)0, t1, state);       
+                
+                // check for end of text and set end state if so
+                if(checkTextEnd())
+                    setState(state, (char)0, 0, 0);
+            } else
+            {
+                // if no branches
+                setState(r, (char)0, t1, t1);
+            }
+            return r;
 	}
 
 	// Rewrites literal
 	private int lit() throws Exception
 	{
-		if(_position >= _len)
-			return 0;
+            int r = state;
+            int t1 = -1;
+            // Does escaping if the escape symbol is detected
+            if(checkNext() == '\\')
+            {
+                _position++;
+                r = chrEsc();
+            }
+            
+            // Parses brackets
+            else if(checkNext() == '(')
+            {
+                _position++;
+                r = expr();
+                if(checkNext() == ')')
+                {
+                    _position++;
+                    if(checkTextEnd())
+                        setState(state, (char)0, 0, 0);
+                }
+                else
+                    throw new Exception("Matching ) not found");
+            }
+            // Parses the wildcard symbol
+            else if(checkNext() == '.')
+            {
+                // set state to consume wildcard character
+                setState(state, (char)65535, state+1, state+1);
+                state++;
+                _position++;
+                
+                // check for end of text and set end state if so
+                if(checkTextEnd())
+                    setState(state, (char)0, 0, 0);
+            }
+            // Parses brackets for alternations
+            else if(checkNext() == '[')
+            {
+                _position++;
+                r = spec();
+                if(checkNext() == ']')
+                {
+                    _position++;
+                    if(checkTextEnd())
+                        setState(state, (char)0, 0, 0);
+                }
+                else
+                    throw new Exception("Matching ] not found");
+            }
+            else
+            {
+                return chr();
+            }
 
-		// Does escaping if the escape symbol is detected
-		if(checkNext() == '\\')
-		{
-			_position++;
-			// Uses a chr parser which only returns 0 for escapable symbols
-			return chrEsc();
-		}
-		// Parses brackets
-		else if(checkNext() == '(')
-		{
-			_position++;
-			expr();
-			if(checkNext() == ')')
-				_position++;
-			else
-				throw new Exception("Matching ) not found");
-		}
-		// Parses the wildcard symbol
-		else if(checkNext() == '.')
-		{
-			_position++;
-		}
-		// Parses brackets for alternations
-		else if(checkNext() == '[')
-		{
-			_position++;
-                        spec();
-			if(checkNext() == ']')
-                            _position++;
-			else
-                            throw new Exception("Matching ] not found");
-		}
-		else
-		{
-			return chr();
-		}
-
-		return 0;
+            return r;
 	}
         
         // Checks for special characters inside a list
 	private int spec() throws Exception    
         {
-            if(_position >= _len)
-                return 0;
-            
+            // record initial state
+            int r = state;
+            // go to new state to build machine
+            state++; 
+            int t1 = state;
+            // make state machine containing character
+            setState(state, _text.charAt(_position), state+1, state+1);
+            state++;
             // move position forward as it does not matter what it is looking at
             _position++;
             
-            // if from here we see a ], it indicates the end of the list
+            // if from here we see a ], it indicates the end of the list and we return
             if(checkNext() == ']')
-                return 0;
+            {
+                setState(r, (char)0, t1, t1);
+                return r;
+            }
+            // otherwise branch
             
-            // otherwise just keep going until you reach ] as all literals including special symbols are parsed
-            spec();
-            return 1;
+            // set end state of first branch
+            int d = state;
+            state++;
+            // create second branch
+            int t2 = spec();
+            // set initial state to branch
+            setState(r, (char)0, t1, t2); 
+            // set first branch destination to same as second branch
+            setState(d, (char)0, state, state);
+            
+            return r;
         }
 
 	// Checks if next char is of the vocabulary
 	private int chr() throws Exception
 	{
-            checkNext();
-            if("|*?\\()[].".indexOf(checkNext()) != -1)
-                    return 1;
-            else
-            {
-                    _position++;
-                    return 0;
-            }
+            setState(state,  checkNext(), state+1, state+1);
+            state++;
+            _position++;
+            // check for end of text and set end state if so
+            if(checkTextEnd())
+                setState(state, (char)0, 0, 0);
+            return state-1;
 	}
         
 
 	// Checks if next char is not of vocabulary
 	private int chrEsc() throws Exception
 	{
-		checkNext();
-		if("|*?\\()[].".indexOf(checkNext()) != -1)
-		{
-			_position++;
-			return 0;
-		}
-		else
-			throw new Exception("Invalid escaped literal: " + "\\" + checkNext());
+            return chr();
 	}
 
 	// Returns the next character. Handles bounds checking too
 	private char checkNext() throws Exception
 	{
-		if(_position >= _len)
-			throw new Exception("Unexpected end of input");
+            if(_position >= _len)
+                throw new Exception("Unexpected end of input");
 
-		return _regex.charAt(_position);
+            return _text.charAt(_position);
 	}
+        
+        private boolean checkTextEnd()
+        {
+            return (_position >= _len);
+        }
 }
