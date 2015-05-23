@@ -258,7 +258,7 @@ public class Executor
             }
 
             // Does another altn if still input left
-            if ("|*?\\()[].".indexOf(checkNext()) == -1)
+            if (checkNext() != 0)
             {
                 altn();
             } 
