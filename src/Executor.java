@@ -24,7 +24,7 @@ public class Executor
 	private int point;
 
         private int startState = 1;
-	private int state = 0;
+	private int state = 1;
 
 	private char[] chrs;
 	private int[] next1;
@@ -124,62 +124,61 @@ public class Executor
 	// Rewrites clause
 	private int clause() throws Exception
 	{
-
-		// Check for correct parse of lit
-                int r = lit();
-		if( r > 0)
-                    return r;
-
-		// If the * or ? decorator symbols exist, then just skip over it
-		if (checkNext() == '*')
-                {                    
-                    _position++;
-                    // set state to point to new branching state
-                    setState(state, (char)'*', state+1, state+1);
-                    // go to next empty state and build branch
-                    state++;
-                    r = state;
-                    
-                    // branch state points to literal or to next state
-                    setState(state, (char)0,r, state+1);
-                    // move to point to next state
-                    state++;
-                    
-                } else if (checkNext() == '?')
-                {
-                    
-                    _position++;
-                    // record finishing state of literal
-                    int d = state;
-                    // go to new empty state and build branching machine
-                    state++;
-                    setState(state, (char)0, r, state+1);
-                    r = state;
-                    
-                    // make new empty state where branching machine can jump to
-                    state++;
-                    // set next state of the end state of the literal as the same state as the branching machine's other state
-                    setState(d, (char)0, state, state);
-                }
-		return r;
+            // record initial state
+            int r = state;
+            // go to new state and build literal machine
+            state++;
+            // record first start location
+            int t1 = lit();
+            
+            // If the * or ? decorator symbols exist, then just skip over it
+            if (checkNext() == '*')
+            {                    
+                _position++;
+                // set state to point to initial state
+                setState(state, (char)0, r, r);
+                
+                // go to next empty state for both branches to point to
+                state++;
+                
+                // initial branch state to point to literal machine or to currerent empty
+                setState(r, (char)0, t1, state);
+            } else if (checkNext() == '?')
+            {
+                _position++;
+                // set state to point to next state
+                setState(state, (char)0, state+1, state+1);
+                
+                // go to next empty state for both branches to point to
+                state++;
+                
+                // initial branch state to point to literal machine or to currerent empty
+                setState(r, (char)0, t1, state);
+            } else
+            {
+                // if no branches
+                setState(r, (char)0, t1, t1);
+            }
+            return r;
 	}
 
 	// Rewrites literal
 	private int lit() throws Exception
 	{
-
+            int r = state;
+            int t1 = -1;
             // Does escaping if the escape symbol is detected
             if(checkNext() == '\\')
             {
-                    _position++;
-                    return chrEsc();
+                _position++;
+                chrEsc();
             }
             
             // Parses brackets
             else if(checkNext() == '(')
             {
                 _position++;
-                expr();
+                r = expr();
                 if(checkNext() == ')')
                     _position++;
                 else
@@ -188,6 +187,9 @@ public class Executor
             // Parses the wildcard symbol
             else if(checkNext() == '.')
             {
+                // set state to consume wildcard character
+                setState(state, (char)65535, state+1, state+1);
+                state++;
                 _position++;
             }
             // Parses brackets for alternations
@@ -202,10 +204,10 @@ public class Executor
             }
             else
             {
-                    return chr();
+                return chr();
             }
 
-            return 0;
+            return r;
 	}
         
         // Checks for special characters inside a list
@@ -246,8 +248,10 @@ public class Executor
             checkNext();
             //if("|*?\\()[].".indexOf(checkNext()) != -1)
             {
-                    _position++;
-                    return 0;
+                _position++;
+                setState(state, _text.charAt(_position), state+1, state+1); // TODO give wildcard char
+                state++;
+                return 0;
             }
             /*else
                     throw new Exception("Invalid escaped literal: " + "\\" + checkNext());*/
