@@ -38,19 +38,19 @@ public class Executor
 
 	public void execute(String text)
 	{
-		_text = text;
+            _text = text;
 
-		try
-		{
-			expr();
+            try
+            {
+                    expr();
 
-			System.out.println(_text.substring(_position));
+                    System.out.println(_text.substring(_position));
 
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+            }
+            catch (Exception e)
+            {
+                    e.printStackTrace();
+            }
 	}
         
         private void setState( int state, char c, int n1, int n2)
@@ -81,7 +81,6 @@ public class Executor
                 
                 // move to new empty state to build second branch
                 state++;
-                
                 _position++;
                 // build second branch and record second branch start location
                 int t2 = expr();
@@ -107,11 +106,15 @@ public class Executor
 		// Check if clause parsed correctly (i.e. if it consumed a char, so that it doesnt go into left recursion)
 		int r = clause();
 
-		if(_position >= _len)
+		// check for end of text and set end state if so
+                if(checkTextEnd())
+                {
+                    setState(state, (char)0, 0, 0);
                     return r;
+                }
 
 		// Does another altn if still input left
-		r = altn();
+		altn();
 
 		return r;
 	}
@@ -138,6 +141,10 @@ public class Executor
                 
                 // initial branch state to point to literal machine or to currerent empty
                 setState(r, (char)0, t1, state);
+                
+                // check for end of text and set end state if so
+                if(checkTextEnd())
+                    setState(state, (char)0, 0, 0);
             } else if (checkNext() == '?')
             {
                 _position++;
@@ -148,7 +155,11 @@ public class Executor
                 state++;
                 
                 // initial branch state to point to literal machine or to currerent empty
-                setState(r, (char)0, t1, state);
+                setState(r, (char)0, t1, state);       
+                
+                // check for end of text and set end state if so
+                if(checkTextEnd())
+                    setState(state, (char)0, 0, 0);
             } else
             {
                 // if no branches
@@ -166,7 +177,7 @@ public class Executor
             if(checkNext() == '\\')
             {
                 _position++;
-                chrEsc();
+                r = chrEsc();
             }
             
             // Parses brackets
@@ -175,7 +186,11 @@ public class Executor
                 _position++;
                 r = expr();
                 if(checkNext() == ')')
+                {
                     _position++;
+                    if(checkTextEnd())
+                        setState(state, (char)0, 0, 0);
+                }
                 else
                     throw new Exception("Matching ) not found");
             }
@@ -186,14 +201,22 @@ public class Executor
                 setState(state, (char)65535, state+1, state+1);
                 state++;
                 _position++;
+                
+                // check for end of text and set end state if so
+                if(checkTextEnd())
+                    setState(state, (char)0, 0, 0);
             }
             // Parses brackets for alternations
             else if(checkNext() == '[')
             {
                 _position++;
-                spec();
+                r = spec();
                 if(checkNext() == ']')
+                {
                     _position++;
+                    if(checkTextEnd())
+                        setState(state, (char)0, 0, 0);
+                }
                 else
                     throw new Exception("Matching ] not found");
             }
@@ -245,7 +268,10 @@ public class Executor
 	{
             setState(state,  checkNext(), state+1, state+1);
             state++;
-            _position++;                
+            _position++;
+            // check for end of text and set end state if so
+            if(checkTextEnd())
+                setState(state, (char)0, 0, 0);
             return state-1;
 	}
         
@@ -264,4 +290,9 @@ public class Executor
 
             return _text.charAt(_position);
 	}
+        
+        private boolean checkTextEnd()
+        {
+            return (_position >= _len);
+        }
 }
