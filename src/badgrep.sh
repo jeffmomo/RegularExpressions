@@ -1,0 +1,1 @@
+cat $2 | java Tester $1
