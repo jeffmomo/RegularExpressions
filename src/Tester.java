@@ -8,7 +8,9 @@ public class Tester
 		//new RegExp("(a|aa|(a[sdf])|)|d");
 		//new RegExp("(a|");
 		//new RegExp("[]dgahafhah[][asdgsdaga]");
-		new RegExp("[abc]c", "aaaaaaabbc");
+		//new RegExp("[abc]c", "aaaaaaabbc");
+                new RegExp("aaa", "aaaaaaabbc"); 
+                new RegExp("a|b|c|d", "aaaaaaabbc"); 
 		//new RegExp("a");
 
 	}

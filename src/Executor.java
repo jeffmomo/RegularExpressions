@@ -54,6 +54,7 @@ public class Executor
 		try
 		{
 			expr();
+                        printFSM();
 
 			System.out.println(_text.substring(_position));
 
@@ -221,13 +222,16 @@ public class Executor
                 _position++;
                 // build second branch and record second branch start location
                 int t2 = expr();
-                
  
                 // set end location of first branch to same as second branch
                 setState(d, (char)0, state, state);
                 
                 // set branching state branching locations
                 setState(r, (char)0, t1, t2);
+                if(checkTextEnd())
+                {
+                    setState(state, (char)0, 0, 0);
+                }
             } else
             {
                 // join initial state to start state of altn machine if there is no branch
@@ -239,21 +243,31 @@ public class Executor
 	// Rewrites altn
 	private int altn() throws Exception
 	{
+            System.out.println(checkNext());
+            // Check if clause parsed correctly (i.e. if it consumed a char, so that it doesnt go into left recursion)
+            int r = clause();
+            
+           
+            
 
-		// Check if clause parsed correctly (i.e. if it consumed a char, so that it doesnt go into left recursion)
-		int r = clause();
+            // check for end of text and set end state if so
+            if(checkTextEnd())
+            {
+                setState(state, (char)0, 0, 0);
+                return r;
+            }
 
-		// check for end of text and set end state if so
-                if(checkTextEnd())
-                {
-                    setState(state, (char)0, 0, 0);
-                    return r;
-                }
-
-		// Does another altn if still input left
-		altn();
-
-		return r;
+            // Does another altn if still input left
+            if ("|*?\\()[].".indexOf(checkNext()) == -1)
+            {
+                altn();
+            } 
+            if(checkTextEnd())
+            {
+                setState(state, (char)0, 0, 0);
+                return r;
+            }
+            return r;
 	}
 
 	// Rewrites clause
@@ -432,5 +446,45 @@ public class Executor
         private boolean checkTextEnd()
         {
             return (_position >= _len);
+        }
+        
+        private void printFSM()
+        {            
+            System.out.println("state");
+            for (int i = 0; i<= state;i++)
+            {
+                if(i<10)
+                    System.out.print(i + "  ");
+                else
+                    System.out.print(i + " ");
+            }
+            System.out.print("\n");
+            
+            System.out.println("char");
+            for (int i = 0; i<= state;i++)
+            {
+                System.out.print(chrs[i] + "  ");
+            }
+            System.out.print("\n");
+            
+            System.out.println("n1");
+            for (int i = 0; i<= state;i++)
+            {
+                if(next1[i]<10)
+                    System.out.print(next1[i] + "  ");
+                else
+                    System.out.print(next1[i] + " ");
+            }
+            System.out.print("\n");
+            
+            System.out.println("n2");
+            for (int i = 0; i<= state;i++)
+            {
+                if(next1[i]<10)
+                    System.out.print(next2[i] + "  ");
+                else
+                    System.out.print(next2[i] + " ");
+            }
+            System.out.print("\n");
         }
 }
