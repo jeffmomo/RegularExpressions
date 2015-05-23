@@ -258,8 +258,8 @@ public class Executor
             }
 
             // Does another altn if still input left
-            if (checkNext() != 0)
-            {
+            if ("|)]".indexOf(checkNext()) == -1)
+            { 
                 altn();
             } 
             if(checkTextEnd())
@@ -430,7 +430,13 @@ public class Executor
 	// Checks if next char is not of vocabulary
 	private int chrEsc() throws Exception
 	{
-            return chr();
+            setState(state,  checkNext(), state+1, state+1);
+            state++;
+            _position++;
+            // check for end of text and set end state if so
+            if(checkTextEnd())
+                setState(state, (char)0, 0, 0);
+            return state-1;
 	}
 
 	// Returns the next character. Handles bounds checking too
