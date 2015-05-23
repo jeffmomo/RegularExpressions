@@ -191,13 +191,13 @@ public class Parser
 	private int chrEsc() throws Exception
 	{
 		checkNext();
-		if("|*?\\()[].".indexOf(checkNext()) != -1)
+		//if("|*?\\()[].".indexOf(checkNext()) != -1)
 		{
 			_position++;
 			return 0;
 		}
-		else
-			throw new Exception("Invalid escaped literal: " + "\\" + checkNext());
+		/*else
+			throw new Exception("Invalid escaped literal: " + "\\" + checkNext());*/
 	}
 
 	// Returns the next character. Handles bounds checking too

@@ -7,8 +7,8 @@ public class Tester
 		//new RegExp("(o[d]?|c*g)|(\\f.f*)");
 		//new RegExp("(a|aa|(a[sdf])|)|d");
 		//new RegExp("(a|");
-		new RegExp("[]dgahafhah[][asdgsdaga]");
-		// new RegExp("(aba)|(ddd)");
+		//new RegExp("[]dgahafhah[][asdgsdaga]");
+		new RegExp("\\df");
 
 	}
 }
