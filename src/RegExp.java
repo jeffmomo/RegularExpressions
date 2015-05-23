@@ -1,20 +1,21 @@
 public class RegExp
 {
-	private Parser _parser;
-	private Executor _compiler;
+	private Executor _executor;
+
 
 
 
 	public RegExp(String text)
 	{
 		new Parser(text).parse();
+		_executor = new Executor(text);
 	}
 
-	public RegExp(String text, String match)
+	public boolean execute(String match)
 	{
-		new Parser(text).parse();
-		new Executor(text).execute(match);
+		return _executor.execute(match);
 	}
+
 
 
 

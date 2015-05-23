@@ -30,7 +30,8 @@ public class Executor
 	private int mark;
 	private int point;
 	private int _currState = 0;
-	private boolean failure = false;
+	private boolean _failure = false;
+	private boolean _success = false;
 
 
 	private int state = 1;
@@ -47,6 +48,12 @@ public class Executor
 	{
 		_text = regex;
 		_len = regex.length();
+
+		compile();
+
+		chrs[0] = '\0';
+		next1[0] = 0;
+		next2[0] = 0;
 	}
 
 	private void compile()
@@ -54,9 +61,9 @@ public class Executor
 		try
 		{
 			expr();
-                        printFSM();
+                        //printFSM();
 
-			System.out.println(_text.substring(_position));
+			//System.err.println(_text.substring(_position));
 
 		}
 		catch (Exception e)
@@ -66,26 +73,33 @@ public class Executor
 	}
 
 
-	public void execute(String text)
+	public boolean execute(String text)
 	{
+		mark = point = 0;
+		_failure = _success = false;
+		_currState = 0;
+		_deq = new DequeEx();
+
+
+
 		_compText = text;
 		_compTextLen = text.length() - 1;
 
-		compile();
-
-		chrs[0] = '\0';
-		next1[0] = 0;
-		next2[0] = 0;
-
-
 		_deq.pushFront(1);
 
-		while(!failure)
+		while(!_failure)
 		{
 			evalStates();
 
 			evalPossible();
 		}
+
+		if(_success)
+			System.err.println("Success!");
+		else
+			System.err.println("Failure to match");
+
+		return _success;
 	}
 
 	private boolean isBranch()
@@ -101,7 +115,7 @@ public class Executor
 
 	private void evalStates()
 	{
-		if(failure)
+		if(_failure)
 			return;
 
 		while(_deq.isPoppable())
@@ -111,8 +125,9 @@ public class Executor
 			if(look == 0)
 			{
 				//SUCCESS
-				failure = true;
-				System.err.println("Success");
+				_failure = true;
+				_success = true;
+				//System.err.println("Success");
 				return;
 			}
 
@@ -130,7 +145,7 @@ public class Executor
 
 		if(_deq.isEmpty() )
 		{
-			if(failure)
+			if(_failure)
 				return;
 
 			incMark();
@@ -155,8 +170,8 @@ public class Executor
 		mark++;
 		if(mark > _compTextLen)
 		{
-			failure = true;
-			System.err.println("Failure to match");
+			_failure = true;
+			//System.err.println("Failure to match");
 			return;
 			//FAILURE
 		}
@@ -183,8 +198,9 @@ public class Executor
 		if(_deq.peekHead() == 0)
 		{
 			//SUCCESS
-			failure = true;
-			System.err.println("Success");
+			_failure = true;
+			_success = true;
+			//System.err.println("Success");
 			return;
 		}
 
@@ -243,7 +259,7 @@ public class Executor
 	// Rewrites altn
 	private int altn() throws Exception
 	{
-            System.out.println(checkNext());
+            //System.out.println(checkNext());
             // Check if clause parsed correctly (i.e. if it consumed a char, so that it doesnt go into left recursion)
             int r = clause();
             
@@ -258,7 +274,7 @@ public class Executor
             }
 
             // Does another altn if still input left
-            if ("|)]".indexOf(checkNext()) == -1)
+            if ("(|)]".indexOf(checkNext()) == -1)
             { 
                 altn();
             } 
@@ -454,43 +470,43 @@ public class Executor
             return (_position >= _len);
         }
         
-        private void printFSM()
-        {            
-            System.out.println("state");
-            for (int i = 0; i<= state;i++)
-            {
-                if(i<10)
-                    System.out.print(i + "  ");
-                else
-                    System.out.print(i + " ");
-            }
-            System.out.print("\n");
-            
-            System.out.println("char");
-            for (int i = 0; i<= state;i++)
-            {
-                System.out.print(chrs[i] + "  ");
-            }
-            System.out.print("\n");
-            
-            System.out.println("n1");
-            for (int i = 0; i<= state;i++)
-            {
-                if(next1[i]<10)
-                    System.out.print(next1[i] + "  ");
-                else
-                    System.out.print(next1[i] + " ");
-            }
-            System.out.print("\n");
-            
-            System.out.println("n2");
-            for (int i = 0; i<= state;i++)
-            {
-                if(next1[i]<10)
-                    System.out.print(next2[i] + "  ");
-                else
-                    System.out.print(next2[i] + " ");
-            }
-            System.out.print("\n");
-        }
+//        private void printFSM()
+//        {
+//            System.out.println("state");
+//            for (int i = 0; i<= state;i++)
+//            {
+//                if(i<10)
+//                    System.out.print(i + "  ");
+//                else
+//                    System.out.print(i + " ");
+//            }
+//            System.out.print("\n");
+//
+//            System.out.println("char");
+//            for (int i = 0; i<= state;i++)
+//            {
+//                System.out.print(chrs[i] + "  ");
+//            }
+//            System.out.print("\n");
+//
+//            System.out.println("n1");
+//            for (int i = 0; i<= state;i++)
+//            {
+//                if(next1[i]<10)
+//                    System.out.print(next1[i] + "  ");
+//                else
+//                    System.out.print(next1[i] + " ");
+//            }
+//            System.out.print("\n");
+//
+//            System.out.println("n2");
+//            for (int i = 0; i<= state;i++)
+//            {
+//                if(next1[i]<10)
+//                    System.out.print(next2[i] + "  ");
+//                else
+//                    System.out.print(next2[i] + " ");
+//            }
+//            System.out.print("\n");
+//        }
 }
