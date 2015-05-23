@@ -108,13 +108,13 @@ public class Executor
 		{
 			int look = _deq.getHead();
 
-//			if(look == 0)
-//			{
-//				//SUCCESS
-//				failure = true;
-//				System.err.println("Success");
-//				return;
-//			}
+			if(look == 0)
+			{
+				//SUCCESS
+				failure = true;
+				System.err.println("Success");
+				return;
+			}
 
 
 			if (isBranch(look))
