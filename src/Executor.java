@@ -19,11 +19,8 @@ public class Executor
 	private int _len;
 
 	private String _text;
-
-	private int mark;
-	private int point;
-
-        private int startState = 1;
+        
+        
 	private int state = 1;
 
 	private char[] chrs;
@@ -109,14 +106,12 @@ public class Executor
 
 		// Check if clause parsed correctly (i.e. if it consumed a char, so that it doesnt go into left recursion)
 		int r = clause();
-                if(r > 0)
-                    return r;
 
 		if(_position >= _len)
                     return r;
 
 		// Does another altn if still input left
-		altn();
+		r = altn();
 
 		return r;
 	}
@@ -213,56 +208,60 @@ public class Executor
         // Checks for special characters inside a list
 	private int spec() throws Exception    
         {
-            if(_position >= _len)
-                return 0;
-            
+            // record initial state
+            int r = state;
+            // go to new state to build machine
+            state++; 
+            int t1 = state;
+            // make state machine containing character
+            setState(state, _text.charAt(_position), state+1, state+1);
+            state++;
             // move position forward as it does not matter what it is looking at
             _position++;
             
-            // if from here we see a ], it indicates the end of the list
+            // if from here we see a ], it indicates the end of the list and we return
             if(checkNext() == ']')
-                return 0;
+            {
+                setState(r, (char)0, t1, t1);
+                return r;
+            }
+            // otherwise branch
             
-            // otherwise just keep going until you reach ] as all literals including special symbols are parsed
-            spec();
-            return 1;
+            // set end state of first branch
+            int d = state;
+            state++;
+            // create second branch
+            int t2 = spec();
+            // set initial state to branch
+            setState(r, (char)0, t1, t2); 
+            // set first branch destination to same as second branch
+            setState(d, (char)0, state, state);
+            
+            return r;
         }
 
 	// Checks if next char is of the vocabulary
 	private int chr() throws Exception
 	{
-            checkNext();
-            if("|*?\\()[].".indexOf(checkNext()) != -1)
-                    return 1;
-            else
-            {
-                    _position++;
-                    return 0;
-            }
+            setState(state,  checkNext(), state+1, state+1);
+            state++;
+            _position++;                
+            return state-1;
 	}
         
 
 	// Checks if next char is not of vocabulary
 	private int chrEsc() throws Exception
 	{
-            checkNext();
-            //if("|*?\\()[].".indexOf(checkNext()) != -1)
-            {
-                _position++;
-                setState(state, _text.charAt(_position), state+1, state+1); // TODO give wildcard char
-                state++;
-                return 0;
-            }
-            /*else
-                    throw new Exception("Invalid escaped literal: " + "\\" + checkNext());*/
+            return chr();
 	}
 
 	// Returns the next character. Handles bounds checking too
 	private char checkNext() throws Exception
 	{
-		if(_position >= _len)
-			throw new Exception("Unexpected end of input");
+            if(_position >= _len)
+                throw new Exception("Unexpected end of input");
 
-		return _text.charAt(_position);
+            return _text.charAt(_position);
 	}
 }
