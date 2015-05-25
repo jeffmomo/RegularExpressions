@@ -28,12 +28,12 @@ public class Tester
 			}
 			catch(Exception e)
 			{
-
+				e.printStackTrace();
 			}
 		}
 		else
 		{
-			System.err.println("Incorrect number of arguments");
+			System.err.println("Incorrect number of arguments. Entering Interactive Mode");
 
 			InputStreamReader ir = new InputStreamReader(System.in);
 			BufferedReader br = new BufferedReader(ir);
@@ -54,7 +54,7 @@ public class Tester
 			}
 			catch(Exception e)
 			{
-
+				e.printStackTrace();
 			}
 		}
 	}

@@ -33,6 +33,8 @@ public class Executor
 	private boolean _failure = false;
 	private boolean _success = false;
 
+	private boolean _delayedIncPoint = false;
+
 
 	private int state = 1;
 
@@ -78,6 +80,7 @@ public class Executor
 		mark = point = 0;
 		_failure = _success = false;
 		_currState = 0;
+		_delayedIncPoint = false;
 		_deq = new DequeEx();
 
 
@@ -110,6 +113,13 @@ public class Executor
 
 	private void evalStates()
 	{
+
+		if(_delayedIncPoint)
+		{
+			_delayedIncPoint = false;
+			incPoint();
+		}
+
 		if(_failure)
 			return;
 
@@ -139,10 +149,10 @@ public class Executor
 			else if (chrs[look] == _compText.charAt(point) || chrs[look] == (char)65535)
 			{
 				_deq.putRear(next1[look]);
-				incPoint();
 			}
 
 		}
+
 
 
 		if(_deq.isEmpty() )
@@ -153,6 +163,11 @@ public class Executor
 			incMark();
 			_deq.pushFront(1);
 			evalStates();
+		}
+		else
+		{
+			_delayedIncPoint = true;
+			//incPoint();
 		}
 
 
@@ -173,16 +188,15 @@ public class Executor
 		if(mark > _compTextLen)
 		{
 			_failure = true;
-			//System.err.println("Failure to match");
 			return;
-			//FAILURE
 		}
 		point = mark;
 	}
 
-
 	private void evalPossible()
 	{
+		if(_failure)
+			return;
 		while(!_deq.isEmpty())
 		{
 			int look = _deq.getTail();
@@ -190,6 +204,10 @@ public class Executor
 			{
 				_deq.pushFront(next1[look]);
 				_deq.pushFront(next2[look]);
+			}
+			else if (chrs[look] == (char)0 && next1[look] != 0)
+			{
+				_deq.putRear(next1[look]);
 			}
 			else
 			{
@@ -205,8 +223,6 @@ public class Executor
 			//System.err.println("Success");
 			return;
 		}
-
-		//
 	}
 
     private void setState( int state, char c, int n1, int n2)
