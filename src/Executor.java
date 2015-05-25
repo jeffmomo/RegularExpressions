@@ -61,7 +61,7 @@ public class Executor
 		try
 		{
 			expr();
-            //printFSM();
+                        //printFSM();
 
 			//System.err.println(_text.substring(_position));
 
@@ -102,15 +102,10 @@ public class Executor
 		return _success;
 	}
 
-	private boolean isBranch()
-	{
-		return chrs[_currState] == '\0';
-		//return next1[_currState] != next2[_currState];
-	}
 	private boolean isBranch(int onState)
 	{
-		return chrs[onState] == '\0';
-		//return next1[_currState] != next2[_currState];
+		//return chrs[onState] == '\0';
+		return next1[onState] != next2[onState];
 	}
 
 	private void evalStates()
@@ -136,10 +131,16 @@ public class Executor
 			{
 				_deq.pushFront(next1[look]);
 				_deq.pushFront(next2[look]);
-			} else if (chrs[look] == _compText.charAt(point) || chrs[look] == (char)65535)
+			}
+			else if (chrs[look] == (char)0)
+			{
+				_deq.pushFront(next1[look]);
+			}
+			else if (chrs[look] == _compText.charAt(point) || chrs[look] == (char)65535)
 			{
 				_deq.putRear(next1[look]);
 			}
+
 		}
 
 
@@ -204,7 +205,7 @@ public class Executor
 			return;
 		}
 
-		incPoint();
+		//incPoint();
 	}
 
     private void setState( int state, char c, int n1, int n2)
@@ -274,7 +275,7 @@ public class Executor
             }
 
             // Does another altn if still input left
-            if ("|)".indexOf(checkNext()) == -1)
+            if ("|)]".indexOf(checkNext()) == -1)
             { 
                 altn();
             } 
@@ -469,45 +470,44 @@ public class Executor
         {
             return (_position >= _len);
         }
-        /*
-		// print FSM used for debugging
-        private void printFSM()
-        {
-            System.out.println("state");
-            for (int i = 0; i<= state;i++)
-            {
-                if(i<10)
-                    System.out.print(i + "  ");
-                else
-                    System.out.print(i + " ");
-            }
-            System.out.print("\n");
-
-            System.out.println("char");
-            for (int i = 0; i<= state;i++)
-            {
-                System.out.print(chrs[i] + "  ");
-            }
-            System.out.print("\n");
-
-            System.out.println("n1");
-            for (int i = 0; i<= state;i++)
-            {
-                if(next1[i]<10)
-                    System.out.print(next1[i] + "  ");
-                else
-                    System.out.print(next1[i] + " ");
-            }
-            System.out.print("\n");
-
-            System.out.println("n2");
-            for (int i = 0; i<= state;i++)
-            {
-                if(next1[i]<10)
-                    System.out.print(next2[i] + "  ");
-                else
-                    System.out.print(next2[i] + " ");
-            }
-            System.out.print("\n");
-        }*/
+        
+//        private void printFSM()
+//        {
+//            System.out.println("state");
+//            for (int i = 0; i<= state;i++)
+//            {
+//                if(i<10)
+//                    System.out.print(i + "  ");
+//                else
+//                    System.out.print(i + " ");
+//            }
+//            System.out.print("\n");
+//
+//            System.out.println("char");
+//            for (int i = 0; i<= state;i++)
+//            {
+//                System.out.print(chrs[i] + "  ");
+//            }
+//            System.out.print("\n");
+//
+//            System.out.println("n1");
+//            for (int i = 0; i<= state;i++)
+//            {
+//                if(next1[i]<10)
+//                    System.out.print(next1[i] + "  ");
+//                else
+//                    System.out.print(next1[i] + " ");
+//            }
+//            System.out.print("\n");
+//
+//            System.out.println("n2");
+//            for (int i = 0; i<= state;i++)
+//            {
+//                if(next1[i]<10)
+//                    System.out.print(next2[i] + "  ");
+//                else
+//                    System.out.print(next2[i] + " ");
+//            }
+//            System.out.print("\n");
+//        }
 }
