@@ -205,7 +205,7 @@ public class Executor
 				_deq.pushFront(next1[look]);
 				_deq.pushFront(next2[look]);
 			}
-			else if (chrs[look] == (char)0 && next1[look] != 0)
+			else if (chrs[look] == (char)0 && next1[look] != 0 && chrs[next1[look]] == (char)0)
 			{
 				_deq.putRear(next1[look]);
 			}
