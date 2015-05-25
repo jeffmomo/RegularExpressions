@@ -61,7 +61,7 @@ public class Executor
 		try
 		{
 			expr();
-                        //printFSM();
+            //printFSM();
 
 			//System.err.println(_text.substring(_position));
 
@@ -274,7 +274,7 @@ public class Executor
             }
 
             // Does another altn if still input left
-            if ("(|)]".indexOf(checkNext()) == -1)
+            if ("|)".indexOf(checkNext()) == -1)
             { 
                 altn();
             } 
@@ -469,44 +469,45 @@ public class Executor
         {
             return (_position >= _len);
         }
-        
-//        private void printFSM()
-//        {
-//            System.out.println("state");
-//            for (int i = 0; i<= state;i++)
-//            {
-//                if(i<10)
-//                    System.out.print(i + "  ");
-//                else
-//                    System.out.print(i + " ");
-//            }
-//            System.out.print("\n");
-//
-//            System.out.println("char");
-//            for (int i = 0; i<= state;i++)
-//            {
-//                System.out.print(chrs[i] + "  ");
-//            }
-//            System.out.print("\n");
-//
-//            System.out.println("n1");
-//            for (int i = 0; i<= state;i++)
-//            {
-//                if(next1[i]<10)
-//                    System.out.print(next1[i] + "  ");
-//                else
-//                    System.out.print(next1[i] + " ");
-//            }
-//            System.out.print("\n");
-//
-//            System.out.println("n2");
-//            for (int i = 0; i<= state;i++)
-//            {
-//                if(next1[i]<10)
-//                    System.out.print(next2[i] + "  ");
-//                else
-//                    System.out.print(next2[i] + " ");
-//            }
-//            System.out.print("\n");
-//        }
+        /*
+		// print FSM used for debugging
+        private void printFSM()
+        {
+            System.out.println("state");
+            for (int i = 0; i<= state;i++)
+            {
+                if(i<10)
+                    System.out.print(i + "  ");
+                else
+                    System.out.print(i + " ");
+            }
+            System.out.print("\n");
+
+            System.out.println("char");
+            for (int i = 0; i<= state;i++)
+            {
+                System.out.print(chrs[i] + "  ");
+            }
+            System.out.print("\n");
+
+            System.out.println("n1");
+            for (int i = 0; i<= state;i++)
+            {
+                if(next1[i]<10)
+                    System.out.print(next1[i] + "  ");
+                else
+                    System.out.print(next1[i] + " ");
+            }
+            System.out.print("\n");
+
+            System.out.println("n2");
+            for (int i = 0; i<= state;i++)
+            {
+                if(next1[i]<10)
+                    System.out.print(next2[i] + "  ");
+                else
+                    System.out.print(next2[i] + " ");
+            }
+            System.out.print("\n");
+        }*/
 }
