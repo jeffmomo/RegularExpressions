@@ -139,6 +139,7 @@ public class Executor
 			else if (chrs[look] == _compText.charAt(point) || chrs[look] == (char)65535)
 			{
 				_deq.putRear(next1[look]);
+				incPoint();
 			}
 
 		}
@@ -205,7 +206,7 @@ public class Executor
 			return;
 		}
 
-		//incPoint();
+		//
 	}
 
     private void setState( int state, char c, int n1, int n2)
