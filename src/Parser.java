@@ -1,5 +1,5 @@
 /**
- * Created by Jeff on 9/05/2015.
+ * Parses the regex
  */
 public class Parser
 {
@@ -25,7 +25,7 @@ public class Parser
 		_len = text.length();
 	}
 
-	public void parse()
+	public boolean parse()
 	{
 		try
 		{
@@ -33,17 +33,25 @@ public class Parser
 			expr();
 
 			// Prints out leftover string if it didnt completely parse
-			System.err.println(_text.substring(_position));
+
 
 			// Gives warning if didnt completely parse
 			if(_len != _position)
-				System.err.println("String did not completely parse");
+			{
+				System.err.println("Regex Syntax Error: String did not completely parse");
+				System.err.println(_text.substring(_position));
+				return false;
+			}
 
 		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
+			return false;
 		}
+
+
+		return true;
 	}
 
 	// Checks the rewriting of expr
@@ -55,7 +63,7 @@ public class Parser
 
 		// Check that altn correctly parsed
 		if(altn() > 0)
-			throw new Exception("Syntax Error: did not find expected symbol after '" + _text.substring(0, _position) + "'");
+			throw new Exception("Regex Syntax Error: did not find expected symbol after '" + _text.substring(0, _position) + "'");
 
 		// If still input then continue matching
 		if(_position >= _len)
@@ -130,7 +138,7 @@ public class Parser
 			if(checkNext() == ')')
 				_position++;
 			else
-				throw new Exception("Matching ) not found");
+				throw new Exception("Regex Syntax Error: Matching ) not found");
 		}
 		// Parses the wildcard symbol
 		else if(checkNext() == '.')
@@ -145,7 +153,7 @@ public class Parser
 			if(checkNext() == ']')
                             _position++;
 			else
-                            throw new Exception("Matching ] not found");
+                            throw new Exception("Regex Syntax Error: Matching ] not found");
 		}
 		else
 		{
@@ -204,7 +212,7 @@ public class Parser
 	private char checkNext() throws Exception
 	{
 		if(_position >= _len)
-			throw new Exception("Unexpected end of input");
+			throw new Exception("Regex Syntax Error: Unexpected end of input");
 
 		return _text.charAt(_position);
 	}

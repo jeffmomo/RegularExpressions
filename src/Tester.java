@@ -1,13 +1,16 @@
+//Jeff Mo         1196144
+//Frankie Yuan    1196194
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.util.Scanner;
 
 public class Tester
 {
 
 	public static void main(String[] args)
 	{
+		// If the apporpriate amount of arguments supplied, then enter normal mode, taking the argument as the regular expressions and compiles it.
+		// It then runs lines from stdin until an empty line is reached.
 		if(args.length == 1)
 		{
 			String regex = args[0];
@@ -28,7 +31,7 @@ public class Tester
 			}
 			catch(Exception e)
 			{
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 		}
 		else
@@ -54,7 +57,7 @@ public class Tester
 			}
 			catch(Exception e)
 			{
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 		}
 	}

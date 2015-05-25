@@ -1,0 +1,12 @@
+Jeff Mo         1196144
+Frankie Yuan    1196194
+
+Usage:
+======
+
+For running the regex over the lines in file
+.\badgrep.sh <regexp> <file>
+
+For a grep-like usage (i.e. takes input from stdin)
+java Tester <regexp>
+

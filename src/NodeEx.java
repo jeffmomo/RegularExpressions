@@ -1,5 +1,5 @@
 /**
- * Created by Jeff on 23/05/2015.
+ * Node for Deque
  */
 public class NodeEx
 {

@@ -1,5 +1,5 @@
 /**
- * Created by Jeff on 9/05/2015.
+ * Compiles and executes the regex
  */
 public class Executor
 {
@@ -12,9 +12,6 @@ public class Executor
     S -> DS | D | ] | ]S
     D -> All Literal Symbols 
     */
-
-
-	//##########TODO: Add the wildcard symbol################
 
 
 	private int _position;
@@ -46,6 +43,7 @@ public class Executor
 
 
 
+	// Constructs the class and compiles the regex
 	public Executor(String regex)
 	{
 		_text = regex;
@@ -53,20 +51,18 @@ public class Executor
 
 		compile();
 
+		// Sets up the first state of FSM
 		chrs[0] = '\0';
 		next1[0] = 0;
 		next2[0] = 0;
 	}
 
+	// Compiles the FSM
 	private void compile()
 	{
 		try
 		{
 			expr();
-                        //printFSM();
-
-			//System.err.println(_text.substring(_position));
-
 		}
 		catch (Exception e)
 		{
@@ -75,21 +71,24 @@ public class Executor
 	}
 
 
+	// Executes the FSM on a string
 	public boolean execute(String text)
 	{
+		// Reset values
 		mark = point = 0;
 		_failure = _success = false;
 		_currState = 0;
 		_delayedIncPoint = false;
 		_deq = new DequeEx();
 
-
-
+		// Sets up text to match
 		_compText = text;
 		_compTextLen = text.length() - 1;
 
+		// Start the FSM by pushing the first state on the stack
 		_deq.pushFront(1);
 
+		// While the FSM has not halted, evaluate the current states and future possible states
 		while(!_failure)
 		{
 			evalStates();
@@ -97,36 +96,43 @@ public class Executor
 			evalPossible();
 		}
 
-		if(_success)
-			System.err.println("Success!");
-		else
-			System.err.println("Failure to match");
+		// Print if FSM has found match after halting
+		//if(_success)
+			//System.err.println("Success!");
+		//else
+			//System.err.println("Failure to match");
 
+		// Returns the successfulness
 		return _success;
 	}
 
+	// Checks if the states is a branchign state
 	private boolean isBranch(int onState)
 	{
-		//return chrs[onState] == '\0';
 		return next1[onState] != next2[onState];
 	}
 
+	// Evaluate the current states
 	private void evalStates()
 	{
-
+		// Perform delayed advancement of point
 		if(_delayedIncPoint)
 		{
 			_delayedIncPoint = false;
 			incPoint();
 		}
 
+		// If halt condition met then return
 		if(_failure)
 			return;
 
+		// While there is stuff in the stack
 		while(_deq.isPoppable())
 		{
+			// Gets the head
 			int look = _deq.getHead();
 
+			// If head points to final state then halt with successful match
 			if(look == 0)
 			{
 				//SUCCESS
@@ -137,6 +143,9 @@ public class Executor
 			}
 
 
+			// IF the state being looked at is branch, push the branches on stack.
+			// If its a redundant state then push on stack too
+			// If its a state which consumes the character currently being pointed to (or is wildcard) then add it to the back of deque
 			if (isBranch(look))
 			{
 				_deq.pushFront(next1[look]);
@@ -155,25 +164,30 @@ public class Executor
 
 
 
+		// If the back of deque (i.e. the possible next states) is empty then we did not match and need to increment the mark
 		if(_deq.isEmpty() )
 		{
+			// Return if halting conditions met
 			if(_failure)
 				return;
 
 			incMark();
+			// Restart the process by pushing first state onto stack again
 			_deq.pushFront(1);
+			// Evaluate states!
 			evalStates();
 		}
 		else
+		// If there are possible states consuming the current character, then increase the point (later)
 		{
 			_delayedIncPoint = true;
-			//incPoint();
 		}
 
 
 
 	}
 
+	// Increases point and handles overflow
 	private void incPoint()
 	{
 		point++;
@@ -182,6 +196,8 @@ public class Executor
 			incMark();
 		}
 	}
+
+	// Increases mark and handles halting condition which occurs when mark > textlength
 	private void incMark()
 	{
 		mark++;
@@ -193,28 +209,39 @@ public class Executor
 		point = mark;
 	}
 
+	// Evaluates the possible next states
 	private void evalPossible()
 	{
+		// Returns if halting conditions met
 		if(_failure)
 			return;
+
+		// Keep evaluating states on queue until it is empty
 		while(!_deq.isEmpty())
 		{
+			// Gets the tail of queue
 			int look = _deq.getTail();
+
+			// If tail is branch, then push both branch to stack of possible current states
+
 			if (isBranch(look))
 			{
 				_deq.pushFront(next1[look]);
 				_deq.pushFront(next2[look]);
 			}
+			// Otherwise if it is a redundant state then just keep evaluating in this queue until a useful state is found
 			else if (chrs[look] == (char)0 && next1[look] != 0 && chrs[next1[look]] == (char)0)
 			{
 				_deq.putRear(next1[look]);
 			}
+			// Finally only useful states left so add it to stack of current states
 			else
 			{
 				_deq.pushFront(next1[look]);
 			}
 		}
 
+		// Check if final state is reached. If reached then halt with successful match
 		if(_deq.peekHead() == 0)
 		{
 			//SUCCESS
@@ -225,6 +252,7 @@ public class Executor
 		}
 	}
 
+	// Sets the state's char, next1, next2
     private void setState( int state, char c, int n1, int n2)
     {
         chrs[state] = c;
@@ -482,49 +510,10 @@ public class Executor
 
             return _text.charAt(_position);
 	}
-        
+
         private boolean checkTextEnd()
         {
             return (_position >= _len);
         }
-        
-//        private void printFSM()
-//        {
-//            System.out.println("state");
-//            for (int i = 0; i<= state;i++)
-//            {
-//                if(i<10)
-//                    System.out.print(i + "  ");
-//                else
-//                    System.out.print(i + " ");
-//            }
-//            System.out.print("\n");
-//
-//            System.out.println("char");
-//            for (int i = 0; i<= state;i++)
-//            {
-//                System.out.print(chrs[i] + "  ");
-//            }
-//            System.out.print("\n");
-//
-//            System.out.println("n1");
-//            for (int i = 0; i<= state;i++)
-//            {
-//                if(next1[i]<10)
-//                    System.out.print(next1[i] + "  ");
-//                else
-//                    System.out.print(next1[i] + " ");
-//            }
-//            System.out.print("\n");
-//
-//            System.out.println("n2");
-//            for (int i = 0; i<= state;i++)
-//            {
-//                if(next1[i]<10)
-//                    System.out.print(next2[i] + "  ");
-//                else
-//                    System.out.print(next2[i] + " ");
-//            }
-//            System.out.print("\n");
-//        }
+
 }
